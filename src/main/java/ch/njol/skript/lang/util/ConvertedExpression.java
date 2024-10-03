@@ -1,21 +1,3 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.lang.util;
 
 import ch.njol.skript.classes.Changer;
@@ -282,15 +264,6 @@ public class ConvertedExpression<F, T> implements Expression<T>, Simplifiable<T>
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public Expression<? extends T> simplify() {
-		Expression<? extends T> convertedExpression = source.simplify().getConvertedExpression(to);
-		if (convertedExpression != null)
-			return convertedExpression;
-		return this;
-	}
-
-	@Override
 	public Object @Nullable [] beforeChange(Expression<?> changed, Object @Nullable [] delta) {
 		return source.beforeChange(changed, delta); // Forward to source
 		// TODO this is not entirely safe, even though probably works well enough
@@ -298,7 +271,11 @@ public class ConvertedExpression<F, T> implements Expression<T>, Simplifiable<T>
 
 	@Override
 	public @NotNull Literal<? extends T> simplified() {
-		return ((Simplifiable<T>) source).simplified().getConvertedExpression(to);
+		Literal<? extends T> converted = ((Simplifiable<T>) source).simplified().getConvertedExpression(to);
+		if (converted != null)
+			return converted;
+
+		throw new UnsupportedOperationException("Cannot simplify " + this);
 	}
 
 	@Override

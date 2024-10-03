@@ -129,10 +129,4 @@ public abstract class PropertyExpression<F, T> extends SimpleExpression<T> {
 		return expr.getAnd();
 	}
 
-	@Override
-	public Expression<? extends T> simplify() {
-		expr = expr.simplify();
-		return this;
-	}
-
 }

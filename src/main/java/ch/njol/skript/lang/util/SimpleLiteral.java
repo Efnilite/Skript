@@ -241,4 +241,8 @@ public class SimpleLiteral<T> implements Literal<T>, DefaultExpression<T> {
 		return source == null ? this : source;
 	}
 
+	@Override
+	public boolean isSimplifiable() {
+		return false;
+	}
 }
