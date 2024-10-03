@@ -1,21 +1,3 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.lang;
 
 import ch.njol.skript.Skript;
@@ -286,18 +268,6 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 	Expression<?> getSource();
 
 	/**
-	 * Simplifies the expression, e.g. if it only contains literals the expression may be simplified to a literal, and wrapped expressions are unwrapped.
-	 * <p>
-	 * After this method was used the toString methods are likely not useful anymore.
-	 * <p>
-	 * This method is not yet used but will be used to improve efficiency in the future.
-	 * 
-	 * @return A reference to a simpler version of this expression. Can change this expression directly and return itself if applicable, i.e. no references to the expression before
-	 *         this method call should be kept!
-	 */
-	Expression<? extends T> simplify();
-
-	/**
 	 * Tests whether this expression supports the given mode, and if yes what type it expects the <code>delta</code> to be.
 	 * <p>
 	 * <b>Use {@link ChangerUtils#acceptsChange(Expression, ChangeMode, Class...)} to test whether an expression supports changing</b>, don't directly use this method!
@@ -380,5 +350,10 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 		// Return the given delta or an Object[] copy of it, with some values transformed
 		return newDelta == null ? delta : newDelta;
 	}
+
+	/**
+	 * @return true if the expression can be simplified to a {@link Literal}
+	 */
+	boolean isSimplifiable();
 
 }

@@ -738,8 +738,8 @@ public class VariableString implements Expression<String> {
 	}
 
 	@Override
-	public Expression<String> simplify() {
-		return this;
+	public boolean isSimplifiable() {
+		return false;
 	}
 
 }

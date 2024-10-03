@@ -22,12 +22,15 @@ import ch.njol.skript.classes.Changer;
 import ch.njol.skript.classes.Changer.ChangeMode;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.lang.Expression;
+import ch.njol.skript.lang.Literal;
+import ch.njol.skript.lang.Simplifiable;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.registrations.Classes;
 import ch.njol.util.Checker;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
 import org.bukkit.event.Event;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.converter.Converter;
 import org.skriptlang.skript.lang.converter.ConverterInfo;
@@ -51,7 +54,7 @@ import java.util.stream.Collectors;
  *
  * @author Peter Güttinger
  */
-public class ConvertedExpression<F, T> implements Expression<T> {
+public class ConvertedExpression<F, T> implements Expression<T>, Simplifiable<T> {
 
 	protected Expression<? extends F> source;
 	protected Class<T> to;
@@ -293,4 +296,13 @@ public class ConvertedExpression<F, T> implements Expression<T> {
 		// TODO this is not entirely safe, even though probably works well enough
 	}
 
+	@Override
+	public @NotNull Literal<? extends T> simplified() {
+		return ((Simplifiable<T>) source).simplified().getConvertedExpression(to);
+	}
+
+	@Override
+	public boolean isSimplifiable() {
+		return source.isSimplifiable();
+	}
 }
