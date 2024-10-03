@@ -345,13 +345,12 @@ public class ExprArithmetic<L, R, T> extends SimpleExpression<T> implements Simp
 	}
 
 	@Override
-	public @NotNull Literal<? extends T> simplified() {
-		return new SimpleLiteral<>(getArray(null), (Class<T>) getReturnType(), false);
-	}
+	public @NotNull Expression<? extends T> simplified() {
+		if (first instanceof Simplifiable && second instanceof Simplifiable) {
+			return new SimpleLiteral<>(getArray(null), (Class<T>) getReturnType(), false);
+		}
 
-	@Override
-	public boolean isSimplifiable() {
-		return first instanceof Simplifiable && second instanceof Simplifiable;
+		return this;
 	}
 
 }

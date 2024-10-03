@@ -755,7 +755,7 @@ public class SkriptParser {
 			if (parsedExpression != null) {
 				log.printLog();
 
-				if (parsedExpression instanceof Simplifiable<?> simplifiable && parsedExpression.isSimplifiable())
+				if (parsedExpression instanceof Simplifiable<?> simplifiable)
 					return simplifiable.simplified();
 				return parsedExpression;
 			}
@@ -789,7 +789,7 @@ public class SkriptParser {
 					log.clear();
 					Expression<?> expression = new SkriptParser(this, expr.substring(1, expr.length() - 1)).parseExpression(exprInfo);
 
-					if (expression instanceof Simplifiable<?> simplifiable && expression.isSimplifiable())
+					if (expression instanceof Simplifiable<?> simplifiable)
 						return simplifiable.simplified();
 					return expression;
 				}
@@ -874,18 +874,12 @@ public class SkriptParser {
 
 			if (isLiteralList) {
 				Literal<?>[] literals = parsedExpressions.toArray(new Literal[parsedExpressions.size()]);
-				LiteralList list = new LiteralList(literals, Classes.getSuperClassInfo(exprReturnTypes).getC(), exprReturnTypes, !and.isFalse());
-
-				if (list.isSimplifiable())
-					return list.simplified();
-				return list;
+				return new LiteralList(literals, Classes.getSuperClassInfo(exprReturnTypes).getC(), exprReturnTypes, !and.isFalse())
+					.simplified();
 			} else {
 				Expression<?>[] expressions = parsedExpressions.toArray(new Expression[parsedExpressions.size()]);
-				var list = new ExpressionList(expressions, Classes.getSuperClassInfo(exprReturnTypes).getC(), exprReturnTypes, !and.isFalse());
-
-				if (list.isSimplifiable())
-					return list.simplified();
-				return list;
+				return new ExpressionList(expressions, Classes.getSuperClassInfo(exprReturnTypes).getC(), exprReturnTypes, !and.isFalse())
+					.simplified();
 			}
 		}
 	}

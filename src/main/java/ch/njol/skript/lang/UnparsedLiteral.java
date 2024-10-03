@@ -112,11 +112,6 @@ public class UnparsedLiteral implements Literal<Object> {
 		return true;
 	}
 
-	@Override
-	public boolean isSimplifiable() {
-		return false;
-	}
-
 	private static SkriptAPIException invalidAccessException() {
 		return new SkriptAPIException("UnparsedLiterals must be converted before use");
 	}

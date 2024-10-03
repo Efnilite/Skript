@@ -270,17 +270,13 @@ public class ConvertedExpression<F, T> implements Expression<T>, Simplifiable<T>
 	}
 
 	@Override
-	public @NotNull Literal<? extends T> simplified() {
-		Literal<? extends T> converted = ((Simplifiable<T>) source).simplified().getConvertedExpression(to);
+	public @NotNull Expression<? extends T> simplified() {
+		//noinspection unchecked
+		Expression<? extends T> converted = ((Simplifiable<T>) source).simplified().getConvertedExpression(to);
 		if (converted != null)
 			return converted;
 
-		throw new UnsupportedOperationException("Cannot simplify " + this);
-	}
-
-	@Override
-	public boolean isSimplifiable() {
-		return source.isSimplifiable();
+		return this;
 	}
 
 }

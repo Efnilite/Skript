@@ -31,11 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * A list of expressions.
@@ -304,7 +300,7 @@ public class ExpressionList<T> implements Expression<T>, Simplifiable<T> {
 	}
 
 	@Override
-	public @NotNull Literal<? extends T> simplified() {
+	public @NotNull Expression<? extends T> simplified() {
 		boolean isLiteralList = true;
 		boolean isSimpleList = true;
 		for (Expression<? extends T> expression : expressions) {
@@ -323,18 +319,7 @@ public class ExpressionList<T> implements Expression<T>, Simplifiable<T> {
 			return new LiteralList<>(ls, returnType, and);
 		}
 
-		throw new UnsupportedOperationException("Cannot simplify " + this);
+		return this;
 	}
 
-	@Override
-	public boolean isSimplifiable() {
-		boolean isLiteralList = true;
-		boolean isSimpleList = true;
-		for (Expression<? extends T> expression : expressions) {
-			isLiteralList &= expression instanceof Simplifiable<?>;
-			isSimpleList &= expression.isSingle();
-		}
-
-		return isLiteralList || isSimpleList;
-	}
 }

@@ -671,9 +671,4 @@ public class Variable<T> implements Expression<T> {
 		return source == null ? this : source;
 	}
 
-	@Override
-	public boolean isSimplifiable() {
-		return false;
-	}
-
 }

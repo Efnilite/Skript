@@ -351,9 +351,4 @@ public interface Expression<T> extends SyntaxElement, Debuggable {
 		return newDelta == null ? delta : newDelta;
 	}
 
-	/**
-	 * @return true if the expression can be simplified to a {@link Literal}
-	 */
-	boolean isSimplifiable();
-
 }

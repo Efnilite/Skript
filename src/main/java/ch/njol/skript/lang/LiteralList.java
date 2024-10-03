@@ -83,18 +83,18 @@ public class LiteralList<T> extends ExpressionList<T> implements Literal<T> {
 
 	@Override
 	public @NotNull Literal<? extends T> simplified() {
+		boolean isSimplifiable = true;
+		for (Expression<? extends T> expression : expressions)
+			isSimplifiable &= expression.isSingle();
+
+		if (!isSimplifiable) {
+			return this;
+		}
+
 		T[] values = (T[]) Array.newInstance(getReturnType(), expressions.length);
 		for (int i = 0; i < values.length; i++)
 			values[i] = ((Literal<? extends T>) expressions[i]).getSingle();
 		return new SimpleLiteral<>(values, getReturnType(), and);
 	}
 
-	@Override
-	public boolean isSimplifiable() {
-		boolean isSimplifiable = true;
-		for (Expression<? extends T> expression : expressions)
-			isSimplifiable &= expression.isSingle();
-
-		return isSimplifiable;
-	}
 }
