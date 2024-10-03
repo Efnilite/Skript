@@ -358,4 +358,5 @@ public abstract class SimpleExpression<T> implements Expression<T> {
 	public boolean isSimplifiable() {
 		return false;
 	}
+
 }

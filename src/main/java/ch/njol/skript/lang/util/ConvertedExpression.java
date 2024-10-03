@@ -282,4 +282,5 @@ public class ConvertedExpression<F, T> implements Expression<T>, Simplifiable<T>
 	public boolean isSimplifiable() {
 		return source.isSimplifiable();
 	}
+
 }
