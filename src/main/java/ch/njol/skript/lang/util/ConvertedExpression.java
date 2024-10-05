@@ -271,8 +271,11 @@ public class ConvertedExpression<F, T> implements Expression<T>, Simplifiable<T>
 
 	@Override
 	public @NotNull Expression<? extends T> simplified() {
+		if (!(source instanceof Simplifiable<?> simplifiable))
+			return this;
+
 		//noinspection unchecked
-		Expression<? extends T> converted = ((Simplifiable<T>) source).simplified().getConvertedExpression(to);
+		Expression<? extends T> converted = simplifiable.simplified().getConvertedExpression(to);
 		if (converted != null)
 			return converted;
 

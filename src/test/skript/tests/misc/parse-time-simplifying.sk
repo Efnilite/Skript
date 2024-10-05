@@ -1,0 +1,5 @@
+test "parse time simplifying":
+	parse:
+		set g's health to (3 + 2) * 2
+
+	broadcast "%last parse logs%"

@@ -24,6 +24,7 @@ import org.skriptlang.skript.lang.arithmetic.Operator;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Collection;
 
@@ -346,7 +347,7 @@ public class ExprArithmetic<L, R, T> extends SimpleExpression<T> implements Simp
 
 	@Override
 	public @NotNull Expression<? extends T> simplified() {
-		if (first instanceof Simplifiable && second instanceof Simplifiable) {
+		if (first instanceof Simplifiable || second instanceof Simplifiable) {
 			return new SimpleLiteral<>(getArray(null), (Class<T>) getReturnType(), false);
 		}
 

@@ -82,7 +82,7 @@ public class LiteralList<T> extends ExpressionList<T> implements Literal<T> {
 	}
 
 	@Override
-	public @NotNull Literal<? extends T> simplified() {
+	public @NotNull Expression<? extends T> simplified() {
 		boolean isSimplifiable = true;
 		for (Expression<? extends T> expression : expressions)
 			isSimplifiable &= expression.isSingle();
@@ -93,7 +93,10 @@ public class LiteralList<T> extends ExpressionList<T> implements Literal<T> {
 
 		T[] values = (T[]) Array.newInstance(getReturnType(), expressions.length);
 		for (int i = 0; i < values.length; i++)
-			values[i] = ((Literal<? extends T>) expressions[i]).getSingle();
+			if (expressions[i] instanceof UnparsedLiteral unparsedLiteral)
+				values[i] = unparsedLiteral.getConvertedExpression(getReturnType()).getSingle();
+			else
+				values[i] = ((Literal<? extends T>) expressions[i]).getSingle();
 		return new SimpleLiteral<>(values, getReturnType(), and);
 	}
 
