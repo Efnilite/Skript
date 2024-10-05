@@ -18,7 +18,9 @@
  */
 package ch.njol.skript.expressions.base;
 
+import ch.njol.skript.lang.Simplifiable;
 import org.bukkit.event.Event;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import ch.njol.skript.Skript;
@@ -40,7 +42,7 @@ import java.util.Arrays;
  * @see SimplePropertyExpression
  * @see #register(Class, Class, String, String)
  */
-public abstract class PropertyExpression<F, T> extends SimpleExpression<T> {
+public abstract class PropertyExpression<F, T> extends SimpleExpression<T> implements Simplifiable<T> {
 
 	/**
 	 * Registers an expression as {@link ExpressionType#PROPERTY} with the two default property patterns "property of %types%" and "%types%'[s] property"
@@ -129,4 +131,12 @@ public abstract class PropertyExpression<F, T> extends SimpleExpression<T> {
 		return expr.getAnd();
 	}
 
+	@Override
+	public @NotNull Expression<? extends T> simplified() {
+		if (expr instanceof Simplifiable<?> simplifiable) {
+			//noinspection unchecked
+			setExpr((Expression<? extends F>) simplifiable.simplified());
+		}
+		return this;
+	}
 }
