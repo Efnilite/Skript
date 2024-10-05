@@ -30,7 +30,6 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
-import ch.njol.skript.lang.util.SimpleLiteral;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
@@ -76,11 +75,7 @@ public class ExprRandom extends SimpleExpression<Object> {
 				expr = CollectionUtils.getRandom(list);
 			}
 		} else {
-			if (exprs[1] instanceof SimpleLiteral<?> literal) {
-				expr = literal;
-			} else {
-				expr = exprs[1].getConvertedExpression((((Literal<ClassInfo<?>>) exprs[0]).getSingle()).getC());
-			}
+			expr = exprs[1].getConvertedExpression((((Literal<ClassInfo<?>>) exprs[0]).getSingle()).getC());
 		}
 		return expr != null && LiteralUtils.canInitSafely(expr);
 	}

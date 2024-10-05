@@ -359,7 +359,7 @@ public class Direction implements YggdrasilRobustSerializable {
 		}
 	}
 
-	public static Expression<Location> combine(final Expression<? extends Direction> dirs, final Expression<? extends Location> locs) {
+	public static Expression<Location> combine(Expression<? extends Direction> dirs, Expression<? extends Location> locs) {
 		return new LocationExpression(dirs, locs);
 	}
 
@@ -419,56 +419,13 @@ public class Direction implements YggdrasilRobustSerializable {
 
 	private static class LocationExpression extends SimpleExpression<Location> implements Simplifiable<Location> {
 
-		private final Expression<? extends Direction> dirs;
-		private final Expression<? extends Location> locs;
+		private final Expression<? extends Direction> directionExpr;
+		private final Expression<? extends Location> locationExpr;
 
-		public LocationExpression(Expression<? extends Direction> dirs, Expression<? extends Location> locs) {
-			this.dirs = dirs;
-			this.locs = locs;
-		}
-
-		@SuppressWarnings("null")
-		@Override
-		protected Location[] get(Event event) {
-			final Direction[] ds = dirs.getArray(event);
-			final Location[] ls = locs.getArray(event);
-			final Location[] r = ls; //ds.length == 1 ? ls : new Location[ds.length * ls.length];
-			for (int i = 0; i < ds.length; i++) {
-				for (int j = 0; j < ls.length; j++) {
-//						r[i + j * ds.length] = ds[i].getRelative(ls[j]);
-					r[j] = ds[i].getRelative(r[j]);
-				}
-			}
-			return r;
-		}
-
-		@SuppressWarnings("null")
-		@Override
-		public Location[] getAll(Event event) {
-			final Direction[] ds = dirs.getAll(event);
-			final Location[] ls = locs.getAll(event);
-			final Location[] r = ls; //ds.length == 1 ? ls : new Location[ds.length * ls.length];
-			for (int i = 0; i < ds.length; i++) {
-				for (int j = 0; j < ls.length; j++) {
-					r[j] = ds[i].getRelative(r[j]);
-				}
-			}
-			return r;
-		}
-
-		@Override
-		public boolean getAnd() {
-			return locs.getAnd();
-		}
-
-		@Override
-		public boolean isSingle() {
-			return locs.isSingle();
-		}
-
-		@Override
-		public Class<? extends Location> getReturnType() {
-			return Location.class;
+		public LocationExpression(Expression<? extends Direction> directionExpr,
+								  Expression<? extends Location> locationExpr) {
+			this.directionExpr = directionExpr;
+			this.locationExpr = locationExpr;
 		}
 
 		@Override
@@ -478,18 +435,56 @@ public class Direction implements YggdrasilRobustSerializable {
 		}
 
 		@Override
-		public @NotNull Expression<? extends Location> simplified() {
-			if (dirs instanceof Literal<?> literal && dirs.isSingle() && Direction.ZERO.equals(literal.getSingle())) {
-				return locs;
+		protected Location[] get(Event event) {
+			Direction[] directions = directionExpr.getArray(event);
+			Location[] locations = locationExpr.getArray(event);
+			for (Direction direction : directions) {
+				for (int j = 0; j < locations.length; j++) {
+					locations[j] = direction.getRelative(locations[j]);
+				}
 			}
-			return this;
+			return locations;
+		}
+
+		@Override
+		public Location[] getAll(Event event) {
+			Direction[] directions = directionExpr.getAll(event);
+			Location[] locations = locationExpr.getAll(event);
+			for (Direction d : directions) {
+				for (int j = 0; j < locations.length; j++) {
+					locations[j] = d.getRelative(locations[j]);
+				}
+			}
+			return locations;
+		}
+
+		@Override
+		public boolean getAnd() {
+			return locationExpr.getAnd();
+		}
+
+		@Override
+		public boolean isSingle() {
+			return locationExpr.isSingle();
+		}
+
+		@Override
+		public Class<? extends Location> getReturnType() {
+			return Location.class;
 		}
 
 		@Override
 		public String toString(@Nullable Event event, boolean debug) {
-			return dirs.toString(event, debug) + " " + locs.toString(event, debug);
+			return directionExpr.toString(event, debug) + " " + locationExpr.toString(event, debug);
 		}
 
+		@Override
+		public @NotNull Expression<? extends Location> simplified() {
+//			if (directionExpr instanceof Literal && directionExpr.isSingle() &&
+//				Direction.ZERO.equals(directionExpr.getSingle(null)))
+//				return locationExpr; TODO
+			return this;
+		}
 	}
 
 }

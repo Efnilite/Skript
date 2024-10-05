@@ -338,10 +338,8 @@ public class ExprArithmetic<L, R, T> extends SimpleExpression<T> implements Simp
 
 	@Override
 	public @NotNull Expression<? extends T> simplified() {
-		if (first instanceof Literal<L> && second instanceof Literal<R> && (leftGrouped || rightGrouped)) {
-			// todo fix not working when using chained arithmetic
-			return new SimpleLiteral<>(getAll(null), (Class<T>) getReturnType(), false);
-		}
+		if (first instanceof Literal<L> && second instanceof Literal<R> && (leftGrouped || rightGrouped))
+			return new SimpleLiteral<>(get(null), (Class<T>) getReturnType(), false);
 
 		return this;
 	}
