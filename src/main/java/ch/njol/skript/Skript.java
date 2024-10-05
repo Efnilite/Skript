@@ -772,7 +772,7 @@ public final class Skript extends JavaPlugin implements Listener {
 
 							Bukkit.getServer().shutdown();
 						}, shutdownDelay);
-					}, 100);
+					}, 1);
 				}
 
 				Skript.metrics = new Metrics(Skript.getInstance(), 722); // 722 is our bStats plugin ID

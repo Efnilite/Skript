@@ -18,15 +18,6 @@
  */
 package ch.njol.skript.expressions;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import org.bukkit.event.Event;
-import org.jetbrains.annotations.Nullable;
-
 import ch.njol.skript.Skript;
 import ch.njol.skript.classes.ClassInfo;
 import ch.njol.skript.doc.Description;
@@ -39,9 +30,18 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.Literal;
 import ch.njol.skript.lang.SkriptParser.ParseResult;
 import ch.njol.skript.lang.util.SimpleExpression;
+import ch.njol.skript.lang.util.SimpleLiteral;
 import ch.njol.skript.util.LiteralUtils;
 import ch.njol.util.Kleenean;
 import ch.njol.util.coll.CollectionUtils;
+import org.bukkit.event.Event;
+import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Name("Random")
 @Description("Gets a random item out of a set, e.g. a random player out of all players online.")
@@ -76,7 +76,11 @@ public class ExprRandom extends SimpleExpression<Object> {
 				expr = CollectionUtils.getRandom(list);
 			}
 		} else {
-			expr = exprs[1].getConvertedExpression((((Literal<ClassInfo<?>>) exprs[0]).getSingle()).getC());
+			if (exprs[1] instanceof SimpleLiteral<?> literal) {
+				expr = literal;
+			} else {
+				expr = exprs[1].getConvertedExpression((((Literal<ClassInfo<?>>) exprs[0]).getSingle()).getC());
+			}
 		}
 		return expr != null && LiteralUtils.canInitSafely(expr);
 	}
@@ -97,7 +101,7 @@ public class ExprRandom extends SimpleExpression<Object> {
 	}
 
 	@Override
-	public Class<? extends Object> getReturnType() {
+	public Class<?> getReturnType() {
 		return expr.getReturnType();
 	}
 

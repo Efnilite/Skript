@@ -16,6 +16,7 @@ import ch.njol.skript.util.Patterns;
 import ch.njol.util.Kleenean;
 import com.google.common.collect.ImmutableSet;
 import org.bukkit.event.Event;
+import org.jaxen.expr.Expr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skriptlang.skript.lang.arithmetic.Arithmetics;
@@ -24,7 +25,6 @@ import org.skriptlang.skript.lang.arithmetic.Operator;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Collection;
 
@@ -40,16 +40,7 @@ public class ExprArithmetic<L, R, T> extends SimpleExpression<T> implements Simp
 
 	private static final Class<?>[] INTEGER_CLASSES = {Long.class, Integer.class, Short.class, Byte.class};
 
-	private static class PatternInfo {
-		public final Operator operator;
-		public final boolean leftGrouped;
-		public final boolean rightGrouped;
-
-		public PatternInfo(Operator operator, boolean leftGrouped, boolean rightGrouped) {
-			this.operator = operator;
-			this.leftGrouped = leftGrouped;
-			this.rightGrouped = rightGrouped;
-		}
+	private record PatternInfo(Operator operator, boolean leftGrouped, boolean rightGrouped) {
 	}
 
 	private static final Patterns<PatternInfo> patterns = new Patterns<>(new Object[][] {
@@ -347,8 +338,9 @@ public class ExprArithmetic<L, R, T> extends SimpleExpression<T> implements Simp
 
 	@Override
 	public @NotNull Expression<? extends T> simplified() {
-		if (first instanceof Literal<L> && second instanceof Literal<R>) {
-			return new SimpleLiteral<>(getArray(null), (Class<T>) getReturnType(), false);
+		if (first instanceof Literal<L> && second instanceof Literal<R> && (leftGrouped || rightGrouped)) {
+			// todo fix not working when using chained arithmetic
+			return new SimpleLiteral<>(getAll(null), (Class<T>) getReturnType(), false);
 		}
 
 		return this;
