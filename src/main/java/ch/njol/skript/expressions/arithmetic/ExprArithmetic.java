@@ -347,7 +347,7 @@ public class ExprArithmetic<L, R, T> extends SimpleExpression<T> implements Simp
 
 	@Override
 	public @NotNull Expression<? extends T> simplified() {
-		if (first instanceof Simplifiable || second instanceof Simplifiable) {
+		if (first instanceof Literal<L> && second instanceof Literal<R>) {
 			return new SimpleLiteral<>(getArray(null), (Class<T>) getReturnType(), false);
 		}
 

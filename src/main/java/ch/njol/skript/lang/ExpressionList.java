@@ -304,7 +304,7 @@ public class ExpressionList<T> implements Expression<T>, Simplifiable<T> {
 		boolean isLiteralList = true;
 		boolean isSimpleList = true;
 		for (Expression<? extends T> expression : expressions) {
-			isLiteralList &= expression instanceof Simplifiable<?>;
+			isLiteralList &= expression instanceof Literal<? extends T>;
 			isSimpleList &= expression.isSingle();
 		}
 

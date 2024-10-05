@@ -92,11 +92,11 @@ public class LiteralList<T> extends ExpressionList<T> implements Literal<T> {
 		}
 
 		T[] values = (T[]) Array.newInstance(getReturnType(), expressions.length);
-		for (int i = 0; i < values.length; i++)
-			if (expressions[i] instanceof UnparsedLiteral unparsedLiteral)
-				values[i] = unparsedLiteral.getConvertedExpression(getReturnType()).getSingle();
-			else
-				values[i] = ((Literal<? extends T>) expressions[i]).getSingle();
+		for (int i = 0; i < values.length; i++) {
+			System.out.println(expressions[i].toString());
+			values[i] = ((Literal<? extends T>) expressions[i]).getSingle();
+		}
+
 		return new SimpleLiteral<>(values, getReturnType(), and);
 	}
 
