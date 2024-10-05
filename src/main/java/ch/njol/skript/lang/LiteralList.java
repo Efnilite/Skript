@@ -1,21 +1,3 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.lang;
 
 import ch.njol.skript.lang.util.SimpleLiteral;
@@ -83,18 +65,29 @@ public class LiteralList<T> extends ExpressionList<T> implements Literal<T> {
 
 	@Override
 	public @NotNull Expression<? extends T> simplified() {
-		boolean isSimplifiable = true;
+		boolean isSimple = true;
 		for (Expression<? extends T> expression : expressions)
-			isSimplifiable &= expression.isSingle();
+			isSimple &= expression.isSingle();
 
-		if (!isSimplifiable) {
+		if (!isSimple) {
 			return this;
 		}
 
 		T[] values = (T[]) Array.newInstance(getReturnType(), expressions.length);
 		for (int i = 0; i < values.length; i++) {
-			System.out.println(expressions[i].toString());
-			values[i] = ((Literal<? extends T>) expressions[i]).getSingle();
+			Literal<? extends T> expression = (Literal<? extends T>) expressions[i]; // all expressions are literals
+
+			if (expression instanceof UnparsedLiteral unparsed) {
+				Literal<? extends T> converted = unparsed.getConvertedExpression(expression.getReturnType());
+
+				if (converted == null) {
+					return this; // conversion failed, so cannot simplify
+				}
+
+				values[i] = converted.getSingle();
+			} else {
+				values[i] = expression.getSingle();
+			}
 		}
 
 		return new SimpleLiteral<>(values, getReturnType(), and);
