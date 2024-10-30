@@ -14,7 +14,7 @@ test "enchant effect":
 	assert enchantments of {_item} is not set with "enchanting effect failed test ##1"
 	
 	enchant {_item} with sharpness 3
-	assert enchantment level of sharpnees on {_item} is 3 with "enchanting effect failed test ##2"
+	assert enchantment level of sharpness on {_item} is 3 with "enchanting effect failed test ##2"
 	
 	enchant {_item} with sharpness 2
-	assert enchantment level of sharpnees on {_item} is 2 with "enchanting effect failed test ##2"
+	assert enchantment level of sharpness on {_item} is 2 with "enchanting effect failed test ##2"

@@ -1382,7 +1382,9 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 	public EnchantmentType @Nullable [] getStoredEnchantmentTypes() {
 		EnchantmentStorageMeta meta = getEnchantmentStorageMeta();
 		if (meta == null)
-			return null;
+			return new EnchantmentType[0];
+		if (!meta.hasStoredEnchants())
+			return new EnchantmentType[0];
 
 		return meta.getStoredEnchants().entrySet().stream()
 				.map(enchant -> new EnchantmentType(enchant.getKey(), enchant.getValue()))
@@ -1391,23 +1393,23 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 
 	/**
 	 * Checks whether this item type has stored enchantments or contains the given stored enchantments.
-	 * Also, checks the enchantment level.
+	 * Also checks the enchantment level.
 	 * @param enchantments The enchantments to be checked.
-	 * @return Whether is has stored enchantments or not.
+	 * @return Whether this item has the provided stored enchantment types or not.
 	 */
 	public boolean hasStoredEnchantments(EnchantmentType... enchantments) {
 		EnchantmentStorageMeta meta = getEnchantmentStorageMeta();
-		if (meta == null)
-			return false;
-		if (!meta.hasStoredEnchants())
+		if (meta == null || !meta.hasStoredEnchants())
 			return false;
 
 		for (EnchantmentType enchantment : enchantments) {
 			Enchantment type = enchantment.getType();
-			assert type != null; // Bukkit working different from what we expect
-			if (!meta.hasStoredEnchant(type))
-				return false;
-			if (enchantment.getInternalLevel() != -1 && meta.getStoredEnchantLevel(type) != enchantment.getLevel())
+			assert type != null;
+
+			boolean hasMatchingLevel = enchantment.getInternalLevel() != -1 &&
+				meta.getStoredEnchantLevel(type) != enchantment.getLevel();
+
+			if (!meta.hasStoredEnchant(type) || hasMatchingLevel)
 				return false;
 		}
 		return true;
@@ -1457,32 +1459,26 @@ public class ItemType implements Unit, Iterable<ItemData>, Container<ItemStack>,
 
 		Set<Enchantment> enchants = meta.getStoredEnchants().keySet();
 		for (Enchantment ench : enchants) {
-			assert ench != null;
 			meta.removeStoredEnchant(ench);
 		}
 		setItemMeta(meta);
-	}
-	
-	/**
-	 * Gets item meta that applies to all items represented by this type.
-	 * @return Item meta.
-	 */
-	public ItemMeta getItemMeta() {
-		return globalMeta != null ? globalMeta : types.get(0).getItemMeta();
 	}
 
 	/**
 	 * Gets {@link EnchantmentStorageMeta} that applies to all items represented by this type if possible.
 	 * @return Item meta.
 	 */
-	@Nullable
-	public EnchantmentStorageMeta getEnchantmentStorageMeta() {
+	public @Nullable EnchantmentStorageMeta getEnchantmentStorageMeta() {
 		ItemMeta itemMeta = getItemMeta();
-		if (itemMeta instanceof EnchantmentStorageMeta) {
-			return (EnchantmentStorageMeta) itemMeta;
-		} else {
-			return null;
-		}
+		return itemMeta instanceof EnchantmentStorageMeta enchantmentStorageMeta ? enchantmentStorageMeta : null;
+	}
+
+	/**
+	 * Gets item meta that applies to all items represented by this type.
+	 * @return Item meta.
+	 */
+	public ItemMeta getItemMeta() {
+		return globalMeta != null ? globalMeta : types.get(0).getItemMeta();
 	}
 
 	/**

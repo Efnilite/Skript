@@ -1,21 +1,3 @@
-/**
- *   This file is part of Skript.
- *
- *  Skript is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Skript is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Skript.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Copyright Peter Güttinger, SkriptLang team and contributors
- */
 package ch.njol.skript.effects;
 
 import ch.njol.skript.Skript;
@@ -34,7 +16,7 @@ import ch.njol.util.Kleenean;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
-import org.eclipse.jdt.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 @Name("Enchant/Disenchant")
 @Description("Enchant or disenchant an existing item with/from [stored] enchantment.")
@@ -60,16 +42,15 @@ public class EffEnchant extends Effect {
 				"unstore (specific:%enchantmenttypes%|enchant[ment]s) (of|from) %~itemtypes%");
 	}
 
-	@SuppressWarnings("null")
 	private Expression<ItemType> items;
-	@Nullable
-	private Expression<EnchantmentType> enchantments;
+	private @Nullable Expression<EnchantmentType> enchantments;
 	private boolean isStored, isDisenchant, isSpecificDisenchant;
 
 	@Override
-	@SuppressWarnings({"unchecked", "null"})
-	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, ParseResult parseResult) {
-		items = (Expression<ItemType>) (matchedPattern == 2 ? exprs[1] : exprs[0]);
+	public boolean init(Expression<?>[] expressions, int matchedPattern,
+						Kleenean isDelayed, ParseResult parseResult) {
+		//noinspection unchecked
+		items = (Expression<ItemType>) (matchedPattern == 2 ? expressions[1] : expressions[0]);
 
 		if (!ChangerUtils.acceptsChange(items, ChangeMode.SET, ItemStack.class)) {
 			Skript.error(items + " cannot be changed, thus it cannot be (dis)enchanted");
@@ -78,7 +59,7 @@ public class EffEnchant extends Effect {
 		isStored = matchedPattern >= 2;
 		isDisenchant = matchedPattern == 1 || matchedPattern == 3;
 		isSpecificDisenchant = parseResult.tags.contains("specific");
-		enchantments = exprs.length == 2 ? (Expression<EnchantmentType>) exprs[(matchedPattern >= 2 ? 0 : 1)] : null;
+		enchantments = expressions.length == 2 ? (Expression<EnchantmentType>) expressions[(matchedPattern >= 2 ? 0 : 1)] : null;
 		return true;
 	}
 
