@@ -163,16 +163,24 @@ public class Config implements Comparable<Config> {
 				continue;
 
 			Node newerNode = newer.getNode(key);
-			String comment = "";
-			if (newerNode != null)
-				comment = newerNode.getComment();
+			if (newerNode == null)
+				continue;
+			String comment = newerNode.getComment();
+
+			SectionNode parent = newerNode.getParent();
+			if (parent == null)
+				continue;
+			Node priorNode = parent.getPriorNode(newerNode);
+			if (priorNode == null)
+				continue;
+			int deltaLine = newerNode.getLine() - priorNode.getLine();
 
 			int splitAt = key.lastIndexOf('.');
 			String pathToKey = key.substring(0, splitAt);
 			String leafKey = key.substring(splitAt + 1); // exclude .
 
 			if (getNode(pathToKey) instanceof SectionNode sectionNode) {
-				sectionNode.insert(new EntryNode(leafKey, value, comment, sectionNode)); // todo get line number
+				sectionNode.add(new EntryNode(leafKey, value, comment, sectionNode, deltaLine));
 			}
 		}
 		return true;
