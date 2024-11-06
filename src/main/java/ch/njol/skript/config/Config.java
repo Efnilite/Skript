@@ -6,7 +6,10 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.channels.Channels;
@@ -14,9 +17,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a config file.
@@ -147,25 +148,29 @@ public class Config implements Comparable<Config> {
 	 * @param newer The newer config to update from.
 	 * @return True if any keys were added to this config, false otherwise.
 	 */
-	public boolean updateKeys(Config newer) {
-		Set<String> newKeys = findKeys(newer.getMainNode());
-		Set<String> oldKeys = findKeys(getMainNode());
+	public boolean updateKeys(@NotNull Config newer) {
+		Set<String> newKeys = findKeys(newer.getMainNode(), "");
+		Set<String> oldKeys = findKeys(getMainNode(), "");
 
 		newKeys.removeAll(oldKeys);
 		Set<String> missingKeys = Set.copyOf(newKeys);
 
-		if (missingKeys.isEmpty()) {
+		if (missingKeys.isEmpty())
 			return false;
-		}
 
 		for (String key : missingKeys) {
 			String value = newer.getByPath(key);
 
-			if (value == null) {
+			if (value == null)
 				continue;
-			}
 
-			getMainNode().set(key, value);
+			int splitAt = key.lastIndexOf('.');
+			String pathToKey = key.substring(0, splitAt);
+			String leafKey = key.substring(splitAt + 1); // exclude .
+
+			if (getNode(pathToKey) instanceof SectionNode sectionNode) {
+				sectionNode.add(new EntryNode(leafKey, value, sectionNode));
+			}
 		}
 		return true;
 	}
@@ -176,27 +181,55 @@ public class Config implements Comparable<Config> {
 	 *     Keys are represented in dot notation, e.g. {@code grandparent.parent.child}.
 	 * </p>
 	 * @param node The parent node to search.
+	 * @param key The built key of the current node. Should be empty when calling this method.
 	 * @return A set of the discovered keys.
 	 */
 	@Contract(pure = true)
-	private Set<String> findKeys(SectionNode node) {
+	private Set<String> findKeys(@NotNull SectionNode node, @NotNull String key) {
 		Set<String> keys = new HashSet<>();
 
-		String key;
-		if (node.getParent() != null) {
-			key = node.getKey() + ".";
-		} else {
-			key = "";
+		if (!key.isEmpty()) {
+			key += ".";
 		}
 
 		for (Node child : node) {
 			if (child instanceof SectionNode sectionNode) {
-				keys.addAll(findKeys(sectionNode));
+				keys.addAll(findKeys(sectionNode, key + sectionNode.getKey()));
 			} else if (child instanceof EntryNode entryNode) {
 				keys.add(key + entryNode.getKey());
 			}
 		}
 		return keys;
+	}
+
+	/**
+	 * Gets a node at the given path, split by dot characters. May be null.
+	 * @param path The path to the section node.
+	 * @return The node at the given path or null if it does not exist.
+	 */
+	public @Nullable Node getNode(@NotNull String path) {
+		return getNode(main, new LinkedList<>(Arrays.asList(path.split("\\."))));
+	}
+
+	/**
+	 * Gets a node at the given path. May be null.
+	 * @param path The path to the section node.
+	 * @return The node at the given path or null if it does not exist.
+	 */
+	public @Nullable Node getNode(@NotNull String... path) {
+		return getNode(main, new LinkedList<>(Arrays.asList(path)));
+	}
+
+	private @Nullable Node getNode(@NotNull SectionNode section, @NotNull Queue<String> path) {
+		String head = path.poll();
+		if (head == null)
+			return section;
+
+		Node node = section.get(head);
+		if (node instanceof SectionNode sectionNode)
+			return getNode(sectionNode, path);
+
+		return node;
 	}
 
 	/**

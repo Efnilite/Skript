@@ -363,19 +363,6 @@ public class SkriptConfig {
 			SkriptConfig.mainConfig = mainConfig;
 
 			String configVersion = mainConfig.get(version.key);
-//			try {
-//				final InputStream in = Skript.getInstance().getResource("config.sk");
-//				if (in == null) {
-//					Skript.error("Your config is outdated, but Skript couldn't find the newest config in its jar.");
-//					return;
-//				}
-//				final Config newConfig = new Config(in, "Skript.jar/config.sk", false, false, ":");
-//				in.close();
-//
-//				mainConfig.updateKeys(newConfig);
-//			} catch (IOException e) {
-//				throw new RuntimeException(e);
-//			}
 			if (configVersion != null && Skript.getVersion().compareTo(new Version(configVersion)) == 0)
 				return;
 
@@ -386,19 +373,18 @@ public class SkriptConfig {
 				}
 				Config newConfig = new Config(stream, "Skript.jar/config.sk", false, false, ":");
 
-				if (newConfig.updateKeys(mainConfig)) { // new config is different
+				boolean updated = mainConfig.updateKeys(newConfig);
+				mainConfig.getMainNode().set(version.key, Skript.getVersion().toString());
+				mainConfig.save(configFile);
+
+				if (updated) {
 					File backup = FileUtils.backup(configFile);
-					newConfig.getMainNode().set(version.key, Skript.getVersion().toString());
-					mainConfig = SkriptConfig.mainConfig = newConfig;
-					mainConfig.save(configFile);
 					Skript.info("Your configuration has been updated to the latest version. " +
 						"A backup of your old config file has been created as " + backup.getName());
-				} else { // only the version changed
-					mainConfig.getMainNode().set(version.key, Skript.getVersion().toString());
-					mainConfig.save(configFile);
 				}
 			} catch (IOException ex) {
 				Skript.exception(ex, "Could not load the main config");
+				return;
 			}
 
 			mainConfig.load(SkriptConfig.class);
