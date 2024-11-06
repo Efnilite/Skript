@@ -162,21 +162,25 @@ public class Config implements Comparable<Config> {
 			if (value == null)
 				continue;
 
+			Node newerNode = newer.getNode(key);
+			String comment = "";
+			if (newerNode != null)
+				comment = newerNode.getComment();
+
 			int splitAt = key.lastIndexOf('.');
 			String pathToKey = key.substring(0, splitAt);
 			String leafKey = key.substring(splitAt + 1); // exclude .
 
-			if (getNode(pathToKey) instanceof SectionNode sectionNode)
-				sectionNode.add(new EntryNode(leafKey, value, sectionNode));
+			if (getNode(pathToKey) instanceof SectionNode sectionNode) {
+				sectionNode.insert(new EntryNode(leafKey, value, comment, sectionNode)); // todo get line number
+			}
 		}
 		return true;
 	}
 
 	/**
 	 * Recursively finds all keys in a section node.
-	 * <p>
-	 *     Keys are represented in dot notation, e.g. {@code grandparent.parent.child}.
-	 * </p>
+	 * <p>Keys are represented in dot notation, e.g. {@code grandparent.parent.child}.</p>
 	 * @param node The parent node to search.
 	 * @param key The built key of the current node. Should be empty when calling this method.
 	 * @return A set of the discovered keys.
@@ -217,6 +221,14 @@ public class Config implements Comparable<Config> {
 		return getNode(main, new LinkedList<>(Arrays.asList(path)));
 	}
 
+	/**
+	 * Recursively gets a node at the given path. May be null.
+	 * @param section The current section node to search.
+	 * @param path The remaining path to the desired node.
+	 * @return The node at the given path or null if it does not exist.
+	 * @see #getNode(String)
+	 * @see #getNode(String...)
+	 */
 	private @Nullable Node getNode(@NotNull SectionNode section, @NotNull Queue<String> path) {
 		String head = path.poll();
 		if (head == null)
