@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -22,8 +23,6 @@ import java.util.Set;
  */
 public class Config implements Comparable<Config> {
 
-	boolean simple;
-
 	/**
 	 * One level of the indentation, e.g. a tab or 4 spaces.
 	 */
@@ -33,23 +32,37 @@ public class Config implements Comparable<Config> {
 	 */
 	private String indentationName = "tab";
 
+	/**
+	 * TODO @Moderocky what does this do
+	 */
+	boolean simple;
 	final String defaultSeparator;
 	String separator;
-
 	int level = 0;
 
+	/**
+	 * The main section of the config.
+	 */
 	private final SectionNode main;
 
-	int errors = 0;
-
+	/**
+	 * Whether this config allows empty sections.
+	 */
 	final boolean allowEmptySections;
 
+	/**
+	 * The name of the file this config is loaded from.
+	 */
 	String fileName;
-	@Nullable
-	Path file = null;
 
-	public Config(final InputStream source, final String fileName, @Nullable final File file, final boolean simple, final boolean allowEmptySections, final String defaultSeparator) throws IOException {
-		try {
+	/**
+	 * The path of the file this config is loaded from.
+	 */
+	@Nullable Path file = null;
+
+	public Config(InputStream source, String fileName, @Nullable File file,
+				  boolean simple, boolean allowEmptySections, String defaultSeparator) throws IOException {
+		try (source) {
 			this.fileName = fileName;
 			if (file != null) // Must check for null before converting to path
 				this.file = file.toPath();
@@ -70,76 +83,41 @@ public class Config implements Comparable<Config> {
 			try (ConfigReader reader = new ConfigReader(source)) {
 				main = SectionNode.load(this, reader);
 			}
-		} finally {
-			source.close();
 		}
 	}
 
-	public Config(final InputStream source, final String fileName, final boolean simple, final boolean allowEmptySections, final String defaultSeparator) throws IOException {
+	public Config(InputStream source, String fileName, boolean simple,
+				  boolean allowEmptySections, String defaultSeparator) throws IOException {
 		this(source, fileName, null, simple, allowEmptySections, defaultSeparator);
 	}
 
-	public Config(final File file, final boolean simple, final boolean allowEmptySections, final String defaultSeparator) throws IOException {
-		this(Files.newInputStream(file.toPath()), file.getName(), simple, allowEmptySections, defaultSeparator);
+	public Config(File file, boolean simple, boolean allowEmptySections,
+				  String defaultSeparator) throws IOException {
+		this(Files.newInputStream(file.toPath()), file.getName(), simple,
+			allowEmptySections, defaultSeparator);
 		this.file = file.toPath();
 	}
 
-	@SuppressWarnings("null")
-	public Config(final Path file, final boolean simple, final boolean allowEmptySections, final String defaultSeparator) throws IOException {
+	public Config(@NotNull Path file, boolean simple, boolean allowEmptySections,
+				  String defaultSeparator) throws IOException {
 		this(Channels.newInputStream(FileChannel.open(file)), "" + file.getFileName(), simple, allowEmptySections, defaultSeparator);
 		this.file = file;
 	}
 
 	/**
-	 * For testing
-	 *
-	 * @param s
-	 * @param fileName
-	 * @param simple
-	 * @param allowEmptySections
-	 * @param defaultSeparator
-	 * @throws IOException
-	 */
-	public Config(final String s, final String fileName, final boolean simple, final boolean allowEmptySections, final String defaultSeparator) throws IOException {
-		this(new ByteArrayInputStream(s.getBytes(ConfigReader.UTF_8)), fileName, simple, allowEmptySections, defaultSeparator);
-	}
-
-	void setIndentation(final String indent) {
-		assert indent != null && !indent.isEmpty() : indent;
-		indentation = indent;
-		indentationName = (indent.charAt(0) == ' ' ? "space" : "tab");
-	}
-
-	String getIndentation() {
-		return indentation;
-	}
-
-	String getIndentationName() {
-		return indentationName;
-	}
-
-	public SectionNode getMainNode() {
-		return main;
-	}
-
-	public String getFileName() {
-		return fileName;
-	}
-
-	/**
 	 * Saves the config to a file.
 	 *
-	 * @param f The file to save to
+	 * @param file The file to save to
 	 * @throws IOException If the file could not be written to.
 	 */
-	public void save(final File f) throws IOException {
+	public void save(File file) throws IOException {
 		separator = defaultSeparator;
-		final PrintWriter w = new PrintWriter(f, "UTF-8");
+		PrintWriter writer = new PrintWriter(file, StandardCharsets.UTF_8);
 		try {
-			main.save(w);
+			main.save(writer);
 		} finally {
-			w.flush();
-			w.close();
+			writer.flush();
+			writer.close();
 		}
 	}
 
@@ -270,35 +248,33 @@ public class Config implements Comparable<Config> {
 	/**
 	 * Splits the given path at the dot character and passes the result to {@link #get(String...)}.
 	 *
-	 * @param path
+	 * @param path The path to get the value from.
 	 * @return <tt>get(path.split("\\."))</tt>
 	 */
-	@SuppressWarnings("null")
 	@Nullable
-	public String getByPath(final String path) {
+	public String getByPath(String path) {
 		return get(path.split("\\."));
 	}
 
 	/**
 	 * Gets an entry node's value at the designated path
 	 *
-	 * @param path
+	 * @param path The path to the entry node
 	 * @return The entry node's value at the location defined by path or null if it either doesn't exist or is not an entry.
 	 */
-	@Nullable
-	public String get(final String... path) {
+	public @Nullable String get(String... path) {
 		SectionNode section = main;
 		for (int i = 0; i < path.length; i++) {
-			final Node n = section.get(path[i]);
-			if (n == null)
+			Node node = section.get(path[i]);
+			if (node == null)
 				return null;
-			if (n instanceof SectionNode) {
+			if (node instanceof SectionNode sectionNode) {
 				if (i == path.length - 1)
 					return null;
-				section = (SectionNode) n;
+				section = sectionNode;
 			} else {
-				if (n instanceof EntryNode && i == path.length - 1)
-					return ((EntryNode) n).getValue();
+				if (node instanceof EntryNode entryNode && i == path.length - 1)
+					return entryNode.getValue();
 				else
 					return null;
 			}
@@ -306,6 +282,9 @@ public class Config implements Comparable<Config> {
 		return null;
 	}
 
+	/**
+	 * @return True if the config is empty, i.e. has no sections or entries.
+	 */
 	public boolean isEmpty() {
 		return main.isEmpty();
 	}
@@ -339,16 +318,18 @@ public class Config implements Comparable<Config> {
 
 	/**
 	 * Sets all {@link Option} fields of the given object to the values from this config
+	 * @param object The object to load the options from
 	 */
-	public void load(final Object o) {
-		load(o.getClass(), o, "");
+	public void load(Object object) {
+		load(object.getClass(), object, "");
 	}
 
 	/**
 	 * Sets all static {@link Option} fields of the given class to the values from this config
+	 * @param clazz The class to load the options from
 	 */
-	public void load(final Class<?> c) {
-		load(c, null, "");
+	public void load(Class<?> clazz) {
+		load(clazz, null, "");
 	}
 
 	@Override
@@ -356,6 +337,28 @@ public class Config implements Comparable<Config> {
 		if (other == null)
 			return 0;
 		return fileName.compareTo(other.fileName);
+	}
+
+	void setIndentation(String indent) {
+		assert indent != null && !indent.isEmpty() : indent;
+		indentation = indent;
+		indentationName = (indent.charAt(0) == ' ' ? "space" : "tab");
+	}
+
+	String getIndentation() {
+		return indentation;
+	}
+
+	String getIndentationName() {
+		return indentationName;
+	}
+
+	public SectionNode getMainNode() {
+		return main;
+	}
+
+	public String getFileName() {
+		return fileName;
 	}
 
 }

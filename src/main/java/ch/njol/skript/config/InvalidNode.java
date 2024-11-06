@@ -32,7 +32,6 @@ public class InvalidNode extends VoidNode {
 	
 	public InvalidNode(final String value, final String comment, final SectionNode parent, final int lineNum) {
 		super(value, comment, parent, lineNum);
-		config.errors++;
 	}
 	
 }
