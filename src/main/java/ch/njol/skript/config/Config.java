@@ -33,9 +33,6 @@ public class Config implements Comparable<Config> {
 	 */
 	private String indentationName = "tab";
 
-	/**
-	 * TODO @Moderocky what does this do
-	 */
 	boolean simple;
 	final String defaultSeparator;
 	String separator;
@@ -101,7 +98,8 @@ public class Config implements Comparable<Config> {
 
 	public Config(@NotNull Path file, boolean simple, boolean allowEmptySections,
 				  String defaultSeparator) throws IOException {
-		this(Channels.newInputStream(FileChannel.open(file)), "" + file.getFileName(), simple, allowEmptySections, defaultSeparator);
+		this(Channels.newInputStream(FileChannel.open(file)), file.getFileName().toString(),
+			simple, allowEmptySections, defaultSeparator);
 		this.file = file;
 	}
 
@@ -126,7 +124,7 @@ public class Config implements Comparable<Config> {
 	 * @deprecated Sets all values in the config, which may affect sensitive values that have not and
 	 * should not be changed. Use {@link #updateKeys(Config)}} instead.
 	 */
-	@Deprecated
+	@Deprecated(forRemoval = true)
 	public boolean setValues(Config other) {
 		return getMainNode().setValues(other.getMainNode());
 	}
@@ -135,7 +133,7 @@ public class Config implements Comparable<Config> {
 	 * @deprecated Sets all values in the config, which may affect sensitive values that have not and
 	 * should not be changed. Use {@link #updateKeys(Config)}} instead.
 	 */
-	@Deprecated
+	@Deprecated(forRemoval = true)
 	public boolean setValues(Config other, String... excluded) {
 		return getMainNode().setValues(other.getMainNode(), excluded);
 	}
@@ -168,9 +166,8 @@ public class Config implements Comparable<Config> {
 			String pathToKey = key.substring(0, splitAt);
 			String leafKey = key.substring(splitAt + 1); // exclude .
 
-			if (getNode(pathToKey) instanceof SectionNode sectionNode) {
+			if (getNode(pathToKey) instanceof SectionNode sectionNode)
 				sectionNode.add(new EntryNode(leafKey, value, sectionNode));
-			}
 		}
 		return true;
 	}
