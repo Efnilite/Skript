@@ -147,65 +147,48 @@ public class Config implements Comparable<Config> {
 	 * @return True if any keys were added to this config, false otherwise.
 	 */
 	public boolean updateKeys(@NotNull Config newer) {
-		Set<String> newKeys = findKeys(newer.getMainNode(), "");
-		Set<String> oldKeys = findKeys(getMainNode(), "");
+		Set<Node> newNodes = findKeys(newer.getMainNode());
+		Set<Node> oldNodes = findKeys(getMainNode());
 
-		newKeys.removeAll(oldKeys);
-		Set<String> missingKeys = Set.copyOf(newKeys);
+		newNodes.removeAll(oldNodes);
+		Set<Node> missingNodes = Set.copyOf(newNodes);
 
-		if (missingKeys.isEmpty())
+		if (missingNodes.isEmpty())
 			return false;
 
-		for (String key : missingKeys) {
-			String value = newer.getByPath(key);
+		for (Node node : missingNodes) {
+			if (node instanceof EntryNode entryNode) {
+				String value = entryNode.getValue();
 
-			if (value == null)
-				continue;
+				if (value == null)
+					continue;
 
-			Node newerNode = newer.getNode(key);
-			if (newerNode == null)
-				continue;
-			String comment = newerNode.getComment();
+				int splitAt = key.lastIndexOf('.');
+				String pathToKey = key.substring(0, splitAt);
+				String leafKey = key.substring(splitAt + 1); // exclude .
 
-			SectionNode parent = newerNode.getParent();
-			if (parent == null)
-				continue;
-			Node priorNode = parent.getPriorNode(newerNode);
-			if (priorNode == null)
-				continue;
-			int deltaLine = newerNode.getLine() - priorNode.getLine();
-
-			int splitAt = key.lastIndexOf('.');
-			String pathToKey = key.substring(0, splitAt);
-			String leafKey = key.substring(splitAt + 1); // exclude .
-
-			if (getNode(pathToKey) instanceof SectionNode sectionNode) {
-				sectionNode.add(new EntryNode(leafKey, value, comment, sectionNode, deltaLine));
+				if (getNode(pathToKey) instanceof SectionNode sectionNode)
+					sectionNode.add(new EntryNode(leafKey, value, sectionNode));
 			}
 		}
 		return true;
 	}
 
 	/**
-	 * Recursively finds all keys in a section node.
-	 * <p>Keys are represented in dot notation, e.g. {@code grandparent.parent.child}.</p>
+	 * Recursively finds all nodes from a root section node.
 	 * @param node The parent node to search.
-	 * @param key The built key of the current node. Should be empty when calling this method.
-	 * @return A set of the discovered keys.
+	 * @return A set of the discovered nodes.
 	 */
 	@Contract(pure = true)
-	private Set<String> findKeys(@NotNull SectionNode node, @NotNull String key) {
-		Set<String> keys = new HashSet<>();
-
-		if (!key.isEmpty()) {
-			key += ".";
-		}
+	private Set<Node> findKeys(@NotNull SectionNode node) {
+		Set<Node> keys = new HashSet<>();
 
 		for (Node child : node) {
 			if (child instanceof SectionNode sectionNode) {
-				keys.addAll(findKeys(sectionNode, key + sectionNode.getKey()));
+				keys.add(sectionNode);
+				keys.addAll(findKeys(sectionNode));
 			} else if (child instanceof EntryNode entryNode) {
-				keys.add(key + entryNode.getKey());
+				keys.add(entryNode);
 			}
 		}
 		return keys;

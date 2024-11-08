@@ -527,34 +527,4 @@ public class SectionNode extends Node implements Iterable<Node> {
 		return different;
 	}
 
-	/**
-	 * Gets the prior child of this section node.
-	 * @param child The node to get the prior child of.
-	 * @return The prior node, or null if there is no prior node.
-	 */
-	public @Nullable Node getPriorNode(Node child) {
-		int idx = nodes.indexOf(child) - 1;
-		if (idx < 0)
-			return null;
-
-		Node node = nodes.get(idx);
-		SkriptLogger.setNode(node);
-		return node;
-	}
-
-	/**
-	 * Gets the next child in this section node.
-	 * @param child The node to get the next node of.
-	 * @return The next node, or null if there is no next node.
-	 */
-	public @Nullable Node getNextNode(Node child) {
-		int idx = nodes.indexOf(child) + 1;
-		if (idx >= nodes.size())
-			return null;
-
-		Node node = nodes.get(idx);
-		SkriptLogger.setNode(node);
-		return node;
-	}
-
 }
